@@ -48,10 +48,14 @@ export function uploadFile(dispatch, firebase, config) {
       : options.name
   const filename = nameFromOptions || file.name
 
+  const bucket = options.bucket || null
+
   const meta = { ...config, filename }
 
   // Dispatch start action
   dispatch({ type: FILE_UPLOAD_START, payload: { ...config, filename } })
+
+  const storage = bucket ? firebase.app().storage(bucket) : firebase.storage();
 
   const uploadPromise = () =>
     options.progress
@@ -59,11 +63,11 @@ export function uploadFile(dispatch, firebase, config) {
           path,
           file,
           filename,
+          bucket,
           meta,
           fileMetadata
         })
-      : firebase
-          .storage()
+      : storage
           .ref(`${path}/${filename}`)
           .put(file, fileMetadata)
 

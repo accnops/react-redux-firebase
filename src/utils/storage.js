@@ -186,10 +186,11 @@ export function writeMetadataToDb({
 export function uploadFileWithProgress(
   dispatch,
   firebase,
-  { path, file, filename, meta, fileMetadata }
+  { path, file, filename, bucket, meta, fileMetadata }
 ) {
-  const uploadEvent = firebase
-    .storage()
+  const storage = bucket ? firebase.app().storage(bucket) : firebase.storage()
+
+  const uploadEvent = storage
     .ref(`${path}/${filename}`)
     .put(file, fileMetadata)
 

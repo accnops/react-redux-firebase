@@ -16,6 +16,7 @@ Available on `props.firebase` if using `firebaseConnect` HOC.
 -   `databasePath` [**String**][string-url] - Path within Firebase Database at which to write files metadata.
 -   `options` [**Object**][object-url] - Options for upload
 -   `options.name` [**String**][string-url] | [**Function**][function-url] - Name of file or function that returns the name of the file. If a function is passed the argument syntax is `(file, internalFirebase, uploadConfig)` where `file` is the file object (`file.name` is used as default if no name option is passed).
+-   `options.bucket` [**String**][string-url] - Name of the storage bucket to be used. Useful when working with multiple storage buckets.
 
 ##### Returns
 [**Promise**][promise-url] Resolves with an array of [`uploadFile` promises results (described below)](#uploadFile).
@@ -32,6 +33,7 @@ Available on `props.firebase` if using `firebaseConnect` HOC.
 -   `databasePath` [**String**][string-url] - Path within Firebase Database at which to write file metadata.
 -   `options` [**Object**][object-url] - Options for upload
 -   `options.name` [**String**][string-url] | [**Function**][function-url] - Name of file or function that returns the name of the file. If a function is passed the argument syntax is `(file, internalFirebase, uploadConfig)` where `file` is the file object (`file.name` is used as default if no name option is passed).
+-   `options.bucket` [**String**][string-url] - Name of the storage bucket to be used. Useful when working with multiple storage buckets.
 
 ##### Returns
 [**Promise**][promise-url] Resolves with an object containing `uploadTaskSnapshot` which is the [**firebase.storage.UploadTaskSnapshot**][upload-task-snapshot-url] returned from the `storageRef.put` call which happens internally. If `databasePath` is provided `snapshot`, `key`, `File`, and `metaDataSnapshot` parameters are also included.

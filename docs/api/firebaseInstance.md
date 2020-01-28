@@ -302,6 +302,7 @@ in [the docs][80].
 -   `dbPath` **[string][69]** Database path to place uploaded file metadata
 -   `options` **[object][66]** Options
     -   `options.name` **[string][69]** Name of the file
+    -   `options.bucket` **[string][69]** Name of the bucket
     -   `options.metdata` **[object][66]** Metadata for the file (passed as second
         argument to storage.put calls)
 
@@ -321,6 +322,7 @@ to store their metadata in Firebase Database.
 -   `dbPath` **[string][69]** Database path to place uploaded files metadata.
 -   `options` **[object][66]** Options
     -   `options.name` **[string][69]** Name of the file
+    -   `options.bucket` **[string][69]** Name of the bucket
 
 Returns **[Promise][72]** Containing an array of File objects
 

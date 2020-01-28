@@ -747,7 +747,8 @@ interface ExtendedStorageInstance {
             file: File,
             internalFirebase: WithFirebaseProps<ProfileType>['firebase'],
             uploadConfig: object
-          ) => string)
+          ) => string),
+      bucket?: string | null
     }
   ) => Promise<{ uploadTaskSnapshot: StorageTypes.UploadTaskSnapshot }>
 
@@ -773,7 +774,8 @@ interface ExtendedStorageInstance {
             file: File,
             internalFirebase: WithFirebaseProps<ProfileType>['firebase'],
             uploadConfig: object
-          ) => string)
+          ) => string),
+      bucket?: string | null
     }
   ) => Promise<{ uploadTaskSnapshot: StorageTypes.UploadTaskSnapshot }[]>
 }
