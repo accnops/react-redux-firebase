@@ -265,7 +265,7 @@ describe('createFirebaseInstance', () => {
     it('calls firebase transaction at provided path', async () => {
       const dispatchSpy = sinon.spy(() => {})
       const snapshot = {}
-      const transactionSpy = sinon.spy(passedArg => {
+      const transactionSpy = sinon.spy((passedArg) => {
         if (typeof passedArg === 'function') {
           passedArg()
         }
@@ -548,11 +548,7 @@ describe('createFirebaseInstance', () => {
 
       expect(firebaseInstance.resetPassword).to.be.a.function
       const email = 'test@test.com'
-      const password = 'asdfasdf1'
-      await firebaseInstance.resetPassword({
-        email,
-        password
-      })
+      await firebaseInstance.resetPassword(email)
       // signInWithEmailAndPassword is called on resetPassword with email
       expect(resetPasswordSpy).to.have.been.calledOnce
     })

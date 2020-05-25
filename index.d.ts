@@ -1,9 +1,8 @@
-import React from 'react'
+import * as React from 'react'
 import * as FirestoreTypes from '@firebase/firestore-types'
 import * as DatabaseTypes from '@firebase/database-types'
 import * as StorageTypes from '@firebase/storage-types'
 import * as AuthTypes from '@firebase/auth-types'
-import * as AppTypes from '@firebase/app-types'
 import { Dispatch } from 'redux'
 
 /**
@@ -390,7 +389,12 @@ export interface ReduxFirestoreQuerySetting {
    * Collection name
    * @see https://github.com/prescottprue/redux-firestore#collection
    */
-  collection: string
+  collection?: string
+  /**
+   * Collection Group name
+   * @see https://github.com/prescottprue/redux-firestore#collection-group
+   */
+  collectionGroup?: string
   /**
    * Document id
    * @see https://github.com/prescottprue/redux-firestore#document
@@ -446,47 +450,50 @@ interface ExtendedFirestoreInstance extends FirestoreTypes.FirebaseFirestore {
    * Get data from firestore.
    * @see https://github.com/prescottprue/redux-firestore#get
    */
-  get: (docPath: string | ReduxFirestoreQuerySetting) => Promise<void>
+  get: <T>(
+    docPath: string | ReduxFirestoreQuerySetting
+  ) => Promise<FirestoreTypes.DocumentSnapshot<Partial<T>>>
 
   /**
    * Set data to firestore.
    * @see https://github.com/prescottprue/redux-firestore#set
    */
-  set: (
+  set: <T>(
     docPath: string | ReduxFirestoreQuerySetting,
-    data: Object
-  ) => Promise<void>
+    data: Partial<T>,
+    options?: FirestoreTypes.SetOptions
+  ) => Promise<FirestoreTypes.DocumentSnapshot<Partial<T>>>
 
   /**
    * Add document to firestore.
    * @see https://github.com/prescottprue/redux-firestore#add
    */
-  add: (
+  add: <T>(
     collectionPath: string | ReduxFirestoreQuerySetting,
-    data: Object
+    data: Partial<T>
   ) => Promise<{ id: string }>
 
   /**
    * Update document within firestore.
    * @see https://github.com/prescottprue/redux-firestore#update
    */
-  update: (
+  update: <T>(
     docPath: string | ReduxFirestoreQuerySetting,
-    data: Object
-  ) => Promise<void>
+    data: Partial<T>
+  ) => Promise<FirestoreTypes.DocumentSnapshot<Partial<T>>>
 
   /**
    * Delete a document within firestore.
    * @see https://github.com/prescottprue/redux-firestore#delete
    */
-  delete: (docPath: string | ReduxFirestoreQuerySetting) => Promise<void>
+  delete: <T>(docPath: string | ReduxFirestoreQuerySetting) => Promise<T>
 
   /**
    * Executes the given updateFunction and then attempts to commit the changes applied within the
    * transaction.
    * @see https://github.com/prescottprue/redux-firestore#runtransaction
    */
-  runTransaction: typeof firebase.firestore.Firestore.runTransaction
+  runTransaction: typeof FirestoreTypes.FirebaseFirestore.prototype.runTransaction
 
   /**
    * Sets a listener within redux-firestore
@@ -572,11 +579,7 @@ type Credentials =
       applicationVerifier: AuthTypes.ApplicationVerifier
     }
 
-interface UserProfile {
-  email: string
-  username: string
-  [a: string]: any
-}
+type UserProfile<P extends object = {}> = P
 
 /**
  * Firebase JS SDK Auth instance extended with methods which dispatch redux actions.
@@ -620,13 +623,10 @@ interface ExtendedAuthInstance {
 
   /**
    * Sends password reset email.
-   * @param credentials - Credentials for authenticating
+   * @param email - Email to send recovery email to
    * @see https://react-redux-firebase.com/docs/auth.html#resetpasswordcredentials
    */
-  resetPassword: (
-    credentials: AuthTypes.UserCredential,
-    profile: UserProfile
-  ) => Promise<any>
+  resetPassword: (email: string) => Promise<any>
 
   /**
    * Confirm that a user's password has been reset.
@@ -681,8 +681,8 @@ interface ExtendedAuthInstance {
    */
   updateAuth: (
     authUpdate: {
-      displayName: string | null
-      photoURL: string | null
+      displayName?: string | null
+      photoURL?: string | null
     },
     updateInProfile?: boolean
   ) => Promise<void>
@@ -808,12 +808,17 @@ export function firebaseConnect<ProfileType, TInner = {}>(
  * @param action.type - Type of Action being called
  * @param action.path - Path of action that was dispatched
  * @param action.data - Data associated with action
- * @see https://react-redux-firebase.com/docs/api/reducer.html
+ * @see https://react-redux-firebase.com/docs/getting_started.html#add-reducer
  */
-export function firebaseReducer<UserType>(
-  state: any,
-  action: any
-): FirebaseReducer.Reducer<UserType>
+export function firebaseReducer<
+  ProfileType extends Record<string, any> = {},
+  Schema extends Record<string, any> = {}
+>(state: any, action: any): FirebaseReducer.Reducer<ProfileType, Schema>
+
+export function makeFirebaseReducer<
+  ProfileType extends Record<string, any> = {},
+  Schema extends Record<string, any> = {}
+>(): (state: any, action: any) => FirebaseReducer.Reducer<ProfileType, Schema>
 
 /**
  * React HOC that attaches/detaches Cloud Firestore listeners on mount/unmount
@@ -995,6 +1000,7 @@ interface ReactReduxFirebaseConfig {
   enableRedirectHandling: boolean
   firebaseStateName: string
   logErrors: boolean
+  onAuthStateChanged: (user: AuthTypes.User | null) => void
   presence: any
   preserveOnEmptyAuthChange: any
   preserveOnLogout: any
@@ -1005,6 +1011,11 @@ interface ReactReduxFirebaseConfig {
   userProfile: string | null
   // Use Firestore for Profile instead of Realtime DB
   useFirestoreForProfile?: boolean
+  enableClaims?: boolean
+  /**
+   * Function for changing how profile is written to database (both RTDB and Firestore).
+   */
+  profileFactory?: (userData?: AuthTypes.User, profileData?: any, firebase?: any) => Promise<any> | any
 }
 
 /**
@@ -1034,7 +1045,9 @@ export interface ReduxFirestoreConfig {
   preserveOnListenerError: null | object
 
   // https://github.com/prescottprue/redux-firestore#onattemptcollectiondelete
-  onAttemptCollectionDelete: null | ((queryOption, dispatch, firebase) => void)
+  onAttemptCollectionDelete:
+    | null
+    | ((queryOption: any, dispatch: any, firebase: any) => void)
 
   // https://github.com/prescottprue/redux-firestore#mergeordered
   mergeOrdered: boolean
@@ -1047,7 +1060,7 @@ export interface ReduxFirestoreConfig {
 }
 
 /**
- * Props passed to ReactReduFirebaseProvider
+ * Props passed to ReactReduxFirebaseProvider
  * @see https://react-redux-firebase.com/docs/api/ReactReduxFirebaseProvider.html
  */
 export interface ReduxFirestoreProviderProps {
@@ -1124,12 +1137,17 @@ export interface Data<T extends FirestoreTypes.DocumentData> {
 }
 
 export namespace FirebaseReducer {
-  export interface Reducer<ProfileType = {}> {
+  export interface Reducer<
+    ProfileType extends Record<string, any> = {},
+    Schema extends Record<string, any> = {}
+  > {
     auth: AuthState
     profile: Profile<ProfileType>
     authError: any
-    data: Data<any | Dictionary<any>>
-    ordered: Ordered<any>
+    data: { [T in keyof Schema]: Record<string, Schema[T]> }
+    ordered: {
+      [T in keyof Schema]: Array<{ key: string; value: Schema[T] }>
+    }
     errors: any[]
     isInitializing: boolean
     listeners: Listeners

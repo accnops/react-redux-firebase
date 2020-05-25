@@ -72,7 +72,7 @@ export function uploadFile(dispatch, firebase, config) {
           .put(file, fileMetadata)
 
   return uploadPromise()
-    .then(uploadTaskSnapshot => {
+    .then((uploadTaskSnapshot) => {
       if (!dbPath || (!firebase.database && !firebase.firestore)) {
         dispatch({
           type: FILE_UPLOAD_COMPLETE,
@@ -94,7 +94,7 @@ export function uploadFile(dispatch, firebase, config) {
         uploadTaskSnapshot,
         dbPath,
         options
-      }).then(payload => {
+      }).then((payload) => {
         dispatch({
           type: FILE_UPLOAD_COMPLETE,
           meta: { ...config, filename },
@@ -103,7 +103,7 @@ export function uploadFile(dispatch, firebase, config) {
         return payload
       })
     })
-    .catch(err => {
+    .catch((err) => {
       if (logErrors) {
         /* eslint-disable no-console */
         console.error &&
@@ -129,7 +129,7 @@ export function uploadFile(dispatch, firebase, config) {
  */
 export function uploadFiles(dispatch, firebase, { files, ...other }) {
   return Promise.all(
-    map(files, file => uploadFile(dispatch, firebase, { file, ...other }))
+    map(files, (file) => uploadFile(dispatch, firebase, { file, ...other }))
   )
 }
 
